@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>F54NK | Red Team Operator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: #000;
+            color: #fff;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .grid-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(255,0,0,0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,0,0,0.1) 1px, transparent 1px);
+            background-size: 50px 50px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        header {
+            padding: 80px 40px;
+            border: 3px solid #ff0000;
+            background: rgba(10, 10, 10, 0.95);
+            margin-bottom: 60px;
+            box-shadow: 0 0 30px rgba(255, 0, 0, 0.3);
+            position: relative;
+        }
+
+        header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: #ff0000;
+            animation: scanline 2s linear infinite;
+        }
+
+        @keyframes scanline {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(100vh); }
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            font-size: 4rem;
+            color: #ff0000;
+            letter-spacing: 8px;
+            font-weight: 900;
+            text-shadow: 0 0 20px rgba(255, 0, 0, 0.5);
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1rem;
+            color: #00ff00;
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            background: #00ff00;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #00ff00;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .specialties {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .specialty-tag {
+            padding: 8px 16px;
+            background: rgba(255, 0, 0, 0.1);
+            border: 1px solid #ff0000;
+            color: #ff0000;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .header-info {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        .info-block {
+            border-left: 3px solid #333;
+            padding-left: 15px;
+        }
+
+        .info-label {
+            font-size: 0.85rem;
+            color: #666;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        .info-value {
+            font-size: 1.1rem;
+            color: #fff;
+        }
+
+        .projects-section {
+            margin-top: 60px;
+        }
+
+        .section-title {
+            font-size: 2rem;
+            color: #ff0000;
+            margin-bottom: 40px;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            position: relative;
+            padding-left: 20px;
+        }
+
+        .section-title::before {
+            content: '>';
+            position: absolute;
+            left: 0;
+            color: #ff0000;
+        }
+
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 30px;
+        }
+
+        .project-card {
+            background: rgba(20, 20, 20, 0.8);
+            border: 2px solid #333;
+            padding: 35px;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .project-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #ff0000, transparent);
+            transition: left 0.5s;
+        }
+
+        .project-card:hover::before {
+            left: 100%;
+        }
+
+        .project-card:hover {
+            border-color: #ff0000;
+            box-shadow: 0 0 30px rgba(255, 0, 0, 0.2);
+            transform: translateY(-5px);
+        }
+
+        .project-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+        }
+
+        .project-title {
+            font-size: 1.8rem;
+            color: #fff;
+            font-weight: 700;
+            letter-spacing: 2px;
+        }
+
+        .pwned-badge {
+            padding: 6px 15px;
+            background: #00ff00;
+            color: #000;
+            font-size: 0.75rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+        }
+
+        .project-type {
+            display: inline-block;
+            padding: 6px 15px;
+            background: rgba(255, 0, 0, 0.1);
+            border: 1px solid #ff0000;
+            color: #ff0000;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 20px;
+        }
+
+        .project-description {
+            color: #aaa;
+            line-height: 1.8;
+            margin-bottom: 25px;
+            font-size: 0.95rem;
+        }
+
+        .project-link {
+            display: inline-block;
+            padding: 12px 30px;
+            background: transparent;
+            border: 2px solid #ff0000;
+            color: #ff0000;
+            text-decoration: none;
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 2px;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .project-link::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: #ff0000;
+            transition: left 0.3s;
+            z-index: -1;
+        }
+
+        .project-link:hover::before {
+            left: 0;
+        }
+
+        .project-link:hover {
+            color: #000;
+            box-shadow: 0 0 20px rgba(255, 0, 0, 0.5);
+        }
+
+        footer {
+            margin-top: 100px;
+            padding: 40px;
+            border-top: 2px solid #333;
+            text-align: center;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .flag-background {
+            position: fixed;
+            bottom: -100%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 1400px;
+            opacity: 0;
+            transition: all 1.5s ease-out;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .flag-background.visible {
+            bottom: 0;
+            opacity: 0.15;
+        }
+
+        .flag-art {
+            font-size: 0.5rem;
+            line-height: 1;
+            font-family: 'Courier New', monospace;
+            white-space: pre;
+            color: #ff0000;
+            text-align: center;
+        }
+
+        @media (max-width: 1024px) {
+            .projects-grid { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 768px) {
+            h1 { font-size: 2.5rem; }
+            .header-info { grid-template-columns: 1fr; }
+            .header-top { flex-direction: column; gap: 20px; align-items: flex-start; }
+        }
+    </style>
+</head>
+<body>
+    <div class="grid-bg"></div>
+    <div class="flag-background" id="flagBg">
+        <pre class="flag-art">                                                                                                                                           
+  ▒▒▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓████▓▓▓▓▓▓▓▓▓▓▓▓▓▓▒▒▓▓▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒░░░░░░░░░░░░░░░░░░░░░░▒▒▒▒▒▒▒▒▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▒▒
+  ▓▓░░▒▒▓▓▓▓▒▒▓▓██▓▓▓▓░░████▓▓▒▒░░▓▓▓▓▓▓▓▓░░██▓▓▓▓▒▒  ▓▓▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒░░░░░░░░░░░░  ░░░░░░░░░░░░░░▒▒▒▒▒▒▒▒▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
+  ▓▓▒▒▓▓▓▓▓▓▓▓██▓▓████▓▓██████▓▓▓▓██▓▓▓▓██▓▓██▓▓▓▓▓▓▓▓▓▓▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒░░░░░░░░▓▓░░░░░░░░▒▒▒▒▒▒▒▒▒▒▒▒▒▒▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
+  ▓▓▓▓▓▓▒▒▓▓▓▓▓▓▓▓▓▓██▓▓▓▓▒▒▓▓▓▓██▓▓░░▓▓▓▓▓▓▓▓▒▒▓▓▓▓████░░░░                                          ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░▒▒
+  ▒▒▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓██▓▓▓▓██▓▓▓▓▓▓▓▓██▓▓██▓▓██                                                ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░▒▒
+  ▒▒  ▒▒▓▓▓▓░░▓▓▓▓▓▓▓▓░░▓▓▓▓▓▓▓▓░░▓▓██▓▓▓▓░░██████▒▒░░██▓▓▒▒▓▓▓▓▒▒▒▒▒▒▒▒▒▒▒▒▒▒░░▒▒▒▒▒▒▒▒▒▒░░░░░░░░▒▒▒▒▒▒▒▒▒▒▒▒▒▒▓▓▓▓▒▒▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
+  ▒▒▒▒▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓██▓▓▓▓▓▓▓▓██▓▓████▓▓▓▓████▓▓▓▓██▓▓▓▓▓▓▓▓▓▓▒▒▓▓▒▒▒▒▒▒▒▒▒▒▒▒▒▒░░░░░░░░░░▒▒▒▒▒▒▒▒▒▒▒▒▒▒▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
+  ▓▓▓▓▓▓░░▓▓▓▓▓▓▒▒▒▒▓▓▓▓▓▓░░▓▓▓▓▓▓▓▓░░▓▓▓▓▓▓▓▓░░▓▓▓▓████▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▓▓▓▓▓▓▓▓▓▓▓▓▓▓██▓▓▓▓██▓▓▓▓▓▓▓▓▓▓
+  ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓████▓▓██████▓▓▓▓██▓▓████████▓▓██████░░░░░░░░░░░░░░░░░░      ░░░░░░░░  ░░░░  ░░░░░░░░░░  ░░▒▒▒▒░░░░░░▒▒▒▒░░░░▒▒▒▒▒▒▒▒░░▒▒
+  ▓▓░░▒▒▓▓▓▓▒▒▓▓████▓▓▒▒██████▓▓▒▒██████▓▓▒▒██████▒▒▒▒██░░  ░░░░▒▒░░░░░░░░░░░░░░  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░▒▒▒▒░░░░░░░░
+  ▓▓▒▒▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓████▓▓▓▓▓▓██████▓▓▓▓████▓▓▓▓▓▓░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░▒▒░░░░░░░░░░
+  ▓▓▓▓▓▓▓▓▓▓▓▓▓▓████▓▓▓▓▓▓▒▒▓▓▓▓▓▓▓▓░░▓▓▓▓▓▓▓▓▒▒▓▓██████▒▒▒▒▒▒▒▒▒▒▓▓▓▓▓▓▓▓▓▓▓▓▓▓▒▒▒▒▒▒▒▒▓▓▒▒▓▓▒▒▓▓▒▒▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
+  ▓▓▓▓▓▓▒▒▓▓▓▓▓▓▒▒▓▓▓▓▓▓▓▓▒▒▓▓▓▓████▒▒████████▒▒████████▓▓▒▒▒▒▓▓▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▓▓▓▓▓▓▓▓▓▓▓▓▓▓▒▒▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓██▓▓▓▓▓▓▓▓██
+  ▓▓▒▒▓▓▓▓▓▓▓▓▓▓▓▓▓▓██▓▓▓▓▓▓▓▓██▓▓▓▓██████▓▓████████▓▓██▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▒▒▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓██▓▓▓▓▓▓▓▓██
+  ▓▓  ▓▓▓▓▓▓░░▓▓▓▓██▓▓  ▓▓▓▓██▒▒░░▓▓████▓▓░░██████▒▒░░██▒▒▒▒▒▒▒▒▒▒░░░░▒▒░░░░░░░░▒▒▒▒▒▒░░░░▒▒░░░░░░▒▒▒▒▒▒▒▒░░▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+  ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓██▓▓▓▓▓▓▓▓▓▓██▓▓████▓▓▓▓▓▓██              ░░    ░░░░░░░░░░░░  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
+  ▓▓▓▓▓▓░░▒▒▓▓▓▓░░▒▒██▓▓▓▓  ▓▓▓▓▓▓▓▓  ▒▒██████  ▓▓██████░░░░  ░░░░░░░░░░░░░░░░  ░░  ░░░░░░░░  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
+  ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓██▓▓██▓▓▓▓▓▓▓▓▓▓██▓▓████████████████▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓██▓▓▓▓▓▓▓▓
+  ▓▓░░▒▒▓▓▓▓▒▒▓▓▓▓▓▓▓▓▒▒██▓▓██▒▒▒▒██████▓▓░░██████▒▒▒▒██▓▓▓▓▓▓▓▓██████████████▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓████████▓▓▓▓██████████████▓▓██
+  ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓██▓▓▓▓████▓▓▓▓████████▓▓██████▓▓▓▓████▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓██▓▓▓▓▓▓▓▓▓▓▓▓▓▓
+                                                              ░░░░░░░░░░░░░░░░░░  ░░░░░░░░▒▒▒▒▒▒░░░░▒▒▒▒░░░░▒▒▒▒░░▒▒▒▒▒▒▒▒▒▒▓▓▒▒▒▒▓▓▒▒▒▒░░▒▒
+                                                                      ░░          ░░░░░░  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░▒▒▒▒
+                            ░░                                          ░░        ░░░░░░░░░░      ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
+  ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓██▓▓▓▓▓▓▓▓
+░░▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓██████████▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓██▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
+  ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▒▒▒▒▒▒▓▓▒▒▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓██▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓██▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
+                                          ░░░░▒▒  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░▒▒▒▒▒▒░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
+                                ░░          ░░                                                          ░░░░░░        ░░░░░░        ░░░░░░░░
+                                                                          ░░░░░░  ░░░░░░░░░░    ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
+  ▓▓▓▓▓▓▒▒▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▒▒▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▒▒▓▓▓▓▓▓▓▓▓▓▓▓▒▒▓▓▓▓
+  ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▓▓▒▒▓▓▓▓▓▓▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▓▓▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
+  ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▒▒▓▓▓▓▓▓▓▓▓▓▒▒▒▒▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓██▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
+    ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░▒▒░░░░░░░░░░▒▒░░░░░░▓▓▒▒░░░░▒▒
+      ░░░░░░░░░░    ░░░░  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░  ░░░░░░░░░░░░░░░░  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
+      ░░░░░░░░░░    ░░░░░░░░░░░░░░░░░░▒▒▒▒░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░▒▒▒▒░░▒▒▒▒░░░░░░░░░░░░░░░░░░░░░░░░
+  ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓██▓▓▓▓▓▓████████▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓██▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓████▓▓██▓▓██▓▓██▓▓████
+  ▓▓▓▓▒▒▒▒▒▒▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓████████▓▓██████▓▓▓▓▓▓▓▓████████████████████████▓▓▓▓▓▓
+  ▓▓▓▓██▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓████▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓██▓▓▓▓▓▓▓▓▓▓▓▓██▓▓▓▓▓▓▓▓▓▓▓▓██████████████████▓▓▓▓</pre>
+    </div>
+    
+    <div class="container">
+        <header>
+            <div class="header-top">
+                <h1>F54NK</h1>
+                <div class="status-indicator">
+                    <div class="status-dot"></div>
+                    <span>ACTIVE</span>
+                </div>
+            </div>
+            
+            <div class="specialties">
+                <span class="specialty-tag">MS-AZ</span>
+                <span class="specialty-tag">OSINT</span>
+                <span class="specialty-tag">Red Team Operator</span>
+                <span class="specialty-tag">HTB</span>
+                <span class="specialty-tag">OSI Team</span>
+            </div>
+            
+            <div class="header-info">
+                <div class="info-block">
+                    <div class="info-label">Role</div>
+                    <div class="info-value">Red Team Operator</div>
+                </div>
+                <div class="info-block">
+                    <div class="info-label">Team</div>
+                    <div class="info-value">Offensive Security Initiative</div>
+                </div>
+                <div class="info-block">
+                    <div class="info-label">Focus</div>
+                    <div class="info-value">OSINT | Pentesting</div>
+                </div>
+            </div>
+        </header>
+
+        <section class="projects-section">
+            <h2 class="section-title">HTB Machines Pwned</h2>
+            
+            <div class="projects-grid">
+                <div class="project-card">
+                    <div class="project-header">
+                        <div>
+                            <h3 class="project-title">Imagery</h3>
+                        </div>
+                        <div class="pwned-badge">PWNED</div>
+                    </div>
+                    <div class="project-type">Hack The Box Machine</div>
+                    <p class="project-description">
+                        Successfully compromised Imagery machine from Hack The Box. Complete root access obtained through systematic exploitation and privilege escalation techniques.
+                    </p>
+                    <a href="https://labs.hackthebox.com/achievement/machine/2437651/751" target="_blank" class="project-link">View Achievement</a>
+                </div>
+
+                <div class="project-card">
+                    <div class="project-header">
+                        <div>
+                            <h3 class="project-title">Expressway</h3>
+                        </div>
+                        <div class="pwned-badge">PWNED</div>
+                    </div>
+                    <div class="project-type">Hack The Box Machine</div>
+                    <p class="project-description">
+                        Successfully compromised Expressway machine from Hack The Box. Exploited vulnerabilities and achieved full system access through advanced penetration testing methodologies.
+                    </p>
+                    <a href="https://labs.hackthebox.com/achievement/machine/2437651/736" target="_blank" class="project-link">View Achievement</a>
+                </div>
+
+                <div class="project-card">
+                    <div class="project-header">
+                        <div>
+                            <h3 class="project-title">Outbound</h3>
+                        </div>
+                        <div class="pwned-badge">PWNED</div>
+                    </div>
+                    <div class="project-type">Hack The Box Machine</div>
+                    <p class="project-description">
+                        Successfully compromised Outbound machine from Hack The Box. Demonstrated advanced attack vectors and lateral movement techniques to achieve complete system compromise.
+                    </p>
+                    <a href="https://labs.hackthebox.com/achievement/machine/2437651/672" target="_blank" class="project-link">View Achievement</a>
+                </div>
+
+                <div class="project-card">
+                    <div class="project-header">
+                        <div>
+                            <h3 class="project-title">Brutus</h3>
+                        </div>
+                        <div class="pwned-badge">SOLVED</div>
+                    </div>
+                    <div class="project-type">Hack The Box Sherlock</div>
+                    <p class="project-description">
+                        Successfully solved Brutus Sherlock challenge from Hack The Box. Applied digital forensics and incident response techniques to analyze and solve the investigation scenario.
+                    </p>
+                    <a href="https://labs.hackthebox.com/achievement/sherlock/2437651/631" target="_blank" class="project-link">View Achievement</a>
+                </div>
+
+                <div class="project-card">
+                    <div class="project-header">
+                        <div>
+                            <h3 class="project-title">Artificial</h3>
+                        </div>
+                        <div class="pwned-badge">PWNED</div>
+                    </div>
+                    <div class="project-type">Hack The Box Machine</div>
+                    <p class="project-description">
+                        Successfully compromised Artificial machine from Hack The Box. Leveraged reconnaissance, exploitation, and post-exploitation techniques to achieve full system control.
+                    </p>
+                    <a href="https://labs.hackthebox.com/achievement/machine/2437651/668" target="_blank" class="project-link">View Achievement</a>
+                </div>
+            </div>
+        </section>
+
+        <section class="flags-section">
+            <div class="ascii-flags">
+                <pre class="flag-art usa-flag">
+═══════════════════════════════════════════════
+|* * * * * * * * * * OOOOOOOOOOOOOOOOOOOOOOOOO|
+| * * * * * * * * *  :::::::::::::::::::::::::|
+|* * * * * * * * * * OOOOOOOOOOOOOOOOOOOOOOOOO|
+| * * * * * * * * *  :::::::::::::::::::::::::|
+|* * * * * * * * * * OOOOOOOOOOOOOOOOOOOOOOOOO|
+| * * * * * * * * *  ::::::::::::::::::::;::::|
+|* * * * * * * * * * OOOOOOOOOOOOOOOOOOOOOOOOO|
+|:::::::::::::::::::::::::::::::::::::::::::::|
+|OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO|
+|:::::::::::::::::::::::::::::::::::::::::::::|
+|OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO|
+|:::::::::::::::::::::::::::::::::::::::::::::|
+|OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO|
+═══════════════════════════════════════════════
+           OSI - HTB - U S A 
+                </pre>
+            </div>
+        </section>
+
+        <footer>
+            F54NK © 2024 | Red Team Operations & Security Research
+        </footer>
+    </div>
+</body>
+</html>
